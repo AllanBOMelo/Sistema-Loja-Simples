@@ -46,10 +46,22 @@ public class Main {
 
                 // Iniciar pagina de compra
                 case 1:
+                    int act;
+
+                    System.out.println("<- [0]      MENU DE COMPRA");
+
                     for (Item p :lista) {
                         System.out.println("----------");
                         System.out.println("Id: " + p.getId() + " | Titulo: " + p.getTitle());
+                        System.out.println("Valor: R$" + p.getPrice());
                     }
+                    System.out.println("""
+                            .........................................
+                            Insira o id do produto desejado:
+                            """);
+                    act = scan.nextInt();
+
+                    lista.remove(act);
                     break;
 
                 // Iniciar pagina de postagem de item
@@ -59,6 +71,7 @@ public class Main {
                     double id;
                     String title;
                     String acc;
+                    double price;
 
                     sell.sell();
 
@@ -67,11 +80,14 @@ public class Main {
 
                     id = Math.random();
 
+                    System.out.print("Insira o valor do produto: R$");
+                    price = scan.nextDouble();
+
                     System.out.print("Insira sua chave pix: ");
                     acc = scan1.nextLine();
 
 
-                    lista.add(new Item(id, title, acc));
+                    lista.add(new Item(id, title, acc, price));
                     break;
 
                 case 3:
