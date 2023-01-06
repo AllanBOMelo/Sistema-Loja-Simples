@@ -11,13 +11,9 @@ public class Buy extends Screen{
                 
                ============== ==== == = = = == = = ===== = = =
                 
-                MENU - VENDAS - INFORMAÇÔES
+                MENU - COMPRAR - INFORMAÇÔES
                 
                =============== = = = = = === == = = = == = ====
-               
-               
-               
-               
                 """);
     }
 
@@ -33,7 +29,7 @@ public class Buy extends Screen{
                 
                ============== ==== == = = = == = = ===== = = =
                 
-                MENU - VENDAS - INFORMAÇÔES - PAGAMENTO
+                MENU - COMPRAR - INFORMAÇÔES - PAGAMENTO
                 
                =============== = = = = = === == = = = == = ====
                

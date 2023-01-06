@@ -101,10 +101,8 @@ public class Main {
                                             buy.buyi();
                                             int select;
 
-                                            System.out.println("""
-                                        Detalhes do produto
-                                        ..............................................................
-                                        """);
+                                            System.out.println("Detalhes do produto");
+                                            System.out.println("..............................................................");
                                             System.out.println("Id: " + p.getId() + " | Titulo: " + p.getTitle() + "\n" +
                                                     "Descrição: " + p.getDescri() + "\n" +
                                                     "Valor: " + p.getPrice() + " | Status [" + p.getStatus() + "] \n" +

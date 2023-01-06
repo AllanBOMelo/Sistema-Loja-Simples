@@ -13,7 +13,7 @@ public class Selling extends Screen{
                 
                ============== ==== == = = = == = = ===== = = =
                 
-                MENU - VENDAS
+                MENU - VENDER
                 
                =============== = = = = = === == = = = == = ====
                
