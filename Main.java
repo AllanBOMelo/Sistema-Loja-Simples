@@ -12,7 +12,9 @@ public class Main {
         Scanner scan = new Scanner(System.in);
         String opca;
         int opc = 5;
-        List<Item> lista = new ArrayList<>();
+        List<Item> lista = new ArrayList<>(); // Declarando lista
+        // Declarando um primeiro elemento que não será usado, so para preencher o index "0", pois mais a frente
+        // Usa o index para estabelecer o ID do produto, e para selecionar iten. Ai o "0" é a opção de voltar.
         lista.add(new Item(0, "blank", "blank", 0, "blank", "blank", "blank", "blank"));
         // Declarações fim
 
@@ -55,6 +57,7 @@ public class Main {
                         System.out.println("\n\n\n\n\n");
                         System.out.println("<- [0]      MENU DE COMPRA");
 
+                        // Função para exibir todos os objetos armazenados na lita
                         for (Item p : lista) {
 
                             if (p.getId() == 0) {
@@ -67,6 +70,7 @@ public class Main {
                             }
 
                         }
+                        // Fim função
 
                         System.out.println(".........................................");
                         System.out.println(msg);
@@ -91,6 +95,9 @@ public class Main {
 
                                 // Fim declarações
 
+                                // Função para percorrer a lista e ao chegar no objeto desejado, exibir as proximas informações
+                                // Se precisar alterar ela para o uso do banco de dados, é só reutilizar a logica dela
+                                // E acredito que maior parte do codigo pode ser reutilizado nisso
                                 for (Item p : lista) {
                                     if (p.getId() == act) {
                                         if (p.getStatus().equals("Vendido")) {
@@ -128,6 +135,7 @@ public class Main {
                                                         System.out.print("Insira um email para contato: ");
                                                         email = scan2.nextLine();
 
+                                                        // Adicionar dados do comprador às variaveis dentro do objeto
                                                         p.setComprador(pseudc);
                                                         p.setCompemail(email);
                                                         p.setStatus("Vendido");
@@ -137,13 +145,14 @@ public class Main {
 
                                                     case 0:
                                                         break;
-                                                }
-                                            }
+                                                } // fim switch
+                                            } // fim else
 
-                                        }
+                                        } // fim else
 
-                                    }
-                                }
+                                    } // Fim if
+                                } // Fim função
+
                             }
                         }
                         catch (Exception e) {
@@ -186,8 +195,10 @@ public class Main {
                     System.out.print("Insira os dados necessarios para pagamento: ");
                     acc = scan1.nextLine();
 
+                    // Como o primeiro item da lista esta um generico, o id dos proximos elementos é a posição do index
                     id = lista.toArray().length;
-                    lista.add(new Item(id, title, acc, price, pseudo, "Disponivel", descri, pagmet));
+                    lista.add(new Item(id, title, acc, price, pseudo, "Disponivel", descri, pagmet)); // Adicionar elemento a lista / banco de dados
+
                     ini.setMsg("Produto Cadastrado com Sucesso");
 
                     break;
