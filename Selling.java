@@ -5,13 +5,25 @@ public class Selling extends Screen{
         System.out.println("""
                 
                 
+                
+                
+                
+                
+                
+                
                ============== ==== == = = = == = = ===== = = =
                 
                 MENU - VENDAS
                 
                =============== = = = = = === == = = = == = ====
+               
+               
+               
+               
                 """);
 
     }
+
+
 
 }
