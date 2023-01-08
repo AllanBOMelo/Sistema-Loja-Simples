@@ -5,7 +5,7 @@ Projeto de faculdade para a aula de POO.
 ## Descrição de pacotes e classes
 
 - `com.loja`
-	- `Main`: Classe que inicia a classe principal;
+	- `Main`: Classe que inicia a interação com a classe `PaginaPrincipal`;
 - `com.loja.excessoes`
 	- `CadastrarException`: Classe exception que quando um erro ocorre ao tentar cadastrar uma linha de alguma tabela;
 	- `AtualizarCadastroException`: Classe exception que quando o erro ocorre ao tentar atualizar uma linha de alguma tabela;
