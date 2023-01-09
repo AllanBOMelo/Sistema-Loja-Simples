@@ -17,6 +17,8 @@ Exemplo p/ uma Funcionalidade Cadastro de usuário:
 
 Obs.: Incluindo o tratamento de exceção. 
 
+A avaliação incluirá a apresentação código desenvolvido por cada integrante de forma individual.
+
 ## Descrição de pacotes e classes
 
 - `com.loja`
