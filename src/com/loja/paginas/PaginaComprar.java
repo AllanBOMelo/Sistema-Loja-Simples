@@ -1,11 +1,14 @@
 package com.loja.paginas;
 
+import java.text.DecimalFormat;
+
 import com.loja.controles.Sistema;
 import com.loja.excessoes.CadastrarException;
 import com.loja.io.LeitorDeEntrada;
 import com.loja.model.CompradorAnonimo;
 import com.loja.model.Item;
 import com.loja.model.Item.Status;
+import com.loja.model.Produto;
 import com.loja.model.VendedorAnonimo;
 import com.loja.util.MenssagensProntas;
 
@@ -20,19 +23,27 @@ public class PaginaComprar {
 	private MenssagensProntas menssagens;
 	private LeitorDeEntrada leitor;
 	private Sistema sistema;
+	private DecimalFormat formatadorDePreco;
 	
 	public PaginaComprar(MenssagensProntas menssagens, LeitorDeEntrada leitor, Sistema sistema) {
 		this.menssagens = menssagens;
 		this.leitor = leitor;
 		this.sistema = sistema;
+		this.formatadorDePreco = new DecimalFormat("###,###,###,###.00");
 	}
 	
 	public void iniciaPaginaDeCompra() {
-        int opcao = 0;
+		
+		if (this.sistema.getItens().length == 0) {
+			System.out.println("\nNao ha itens cadastrados!\n");
+			return;
+		}
+		
+        int opcao = -1;
         int selecionado;
         Item itemEncontrado;
         
-        while (opcao != -1) {
+        while (opcao != 0) {
             System.out.println("\n\n\n\n\n");
             System.out.println("<- [0]      MENU DE COMPRA");
 
@@ -41,12 +52,12 @@ public class PaginaComprar {
             System.out.println(".........................................");
             System.out.println("""                     
                 Selecione item atraves do ID
-                ou "-1" para sair.
+                ou "0" para sair.
                 """);
 
             selecionado = leitor.proximoInteiro("\nSelecione: ");
 
-            if (selecionado == -1) // Sair
+            if (selecionado == 0) // Para sair, por padrao, os ids do banco de dados comecam do 1
             	return;
             
             itemEncontrado = encontrarItemPorId(selecionado);
@@ -74,9 +85,9 @@ public class PaginaComprar {
 
 		for (Item p : sistema.getItens()) {
 	        System.out.println("----------");
-	        System.out.println("Id: " + p.getId() + " | Titulo: " + p.getTitulo());
-	        System.out.println("Valor: R$" + p.getPreco());
-	        System.out.println("Status: " + p.getStatus());
+	        System.out.println("Id: "      + p.getId() + " | Titulo: " + p.getTitulo());
+	        System.out.println("Valor: R$" + formatadorDePreco.format(p.getPreco()));
+	        System.out.println("Status: "  + p.getStatus());
 		}
 
 	}
@@ -84,6 +95,7 @@ public class PaginaComprar {
 	private void subPaginaDeConfirmacaoDeCompra(Item itemEncontrado) {
 		
 		VendedorAnonimo vendedor = sistema.retornaVendedor(itemEncontrado.getIdVendedor());
+		Produto produto = sistema.retornaProduto(itemEncontrado.getId());
 		
 		// Apresenta informações do produto
 
@@ -92,27 +104,30 @@ public class PaginaComprar {
 		System.out.println("Detalhes do produto");
 		System.out.println("..............................................................");
 		System.out.println(
-				"Id: "                  + itemEncontrado.getId()        + " | Titulo: " + itemEncontrado.getTitulo() + "\n" +
-		        "Descrição: "           + itemEncontrado.getDescricao() + "\n" +
-		        "Valor: "               + itemEncontrado.getPreco()     + " | Status [" + itemEncontrado.getStatus() + "] \n" +
-		        "Autor: "               + vendedor.getPseudonimo()  + "\n" +
-		        "Método de pagamento: " + vendedor.getDadosPagamento());
+				"Id: "                       + itemEncontrado.getId()        
+										     + " | Titulo: " + itemEncontrado.getTitulo()          + "\n" +
+		        "Descrição: "                + itemEncontrado.getDescricao()                       + "\n" +
+		        "Link de amostra de dados: " + produto.getLinkAmostraDados()                       + "\n" +
+		        "Valor: "                    + formatadorDePreco.format(itemEncontrado.getPreco()) 
+		        						     + " | Status [" + itemEncontrado.getStatus()          + "] \n" +
+		        "Autor: "                    + vendedor.getPseudonimo()                            + "\n" +
+		        "Método de pagamento: "      + vendedor.getDadosPagamento());
 
 		// Info fim
 		System.out.println("<- [0]                      [1] Confirmar");
 		System.out.println("    Deseja continuar a compra?");
 		
-		int opcao = leitor.proximoInteiro("\nSelect: ");
+		int opcao = leitor.proximoInteiro("\nSelecione: ");
 
 		if (opcao == 1)
-		    realizaCompra(itemEncontrado);
+		    realizaCompra(itemEncontrado, vendedor, produto);
 
 	}
 
-	private void realizaCompra(Item itemEncontrado) {
+	private void realizaCompra(Item itemEncontrado, VendedorAnonimo vendedor, Produto produto) {
 		System.out.println(menssagens.getInformacoesCompraPagamento());
 
-		String pseudonimoComprador = leitor.proximoTexto("\nInsira um pseudo de identificação: ");
+		String pseudonimoComprador = leitor.proximoTexto("\nInsira um pseudonome de identificação: ");
 		//String email               = leitor.proximoTexto("\nInsira um email para contato: ");
 		String pagamento           = leitor.proximoTexto("\nInsira comprovate de pagamento: ");
 		
@@ -122,8 +137,11 @@ public class PaginaComprar {
 		    
 		    itemEncontrado.setStatus(Status.VENDIDO);
 
-		    System.out.println("Compra realizada. Em breve você receberá um email do autor\n");
-		
+		    System.out.println("\nCompra realizada. Contate o autor para saber mais:"); // Em breve você receberá um email do autor\n");
+		    System.out.println("Contato do vendedor: " + vendedor.getContato());
+		    System.out.println("Link dos dados: " + produto.getLinkDados());
+		    System.out.println("\n\n");
+		    
 		} catch (CadastrarException e) {
 			System.err.println(e.getMessage());
 		}

@@ -21,24 +21,27 @@ public class Item {
     // Declarações
     private final int id;
     private String titulo;
+    private String descricao;
     private double preco;
     private Status status;
-    private String descricao;
+    private final int idProduto;
     private final int idVendedor;
     
     // Declarações fim
 
     public Item(int id, 
 		    String titulo, 
+		    String descricao, 
 		    double preco, 
 		    Status status, 
-		    String descricao, 
+		    int idProduto,
 		    int    idVendedor) {
         this.id             = id;
         this.titulo         = titulo;
+        this.descricao      = descricao;
         this.preco          = preco;
         this.status         = status;
-        this.descricao      = descricao;
+        this.idProduto      = idProduto;
         this.idVendedor     = idVendedor;
     }
 
@@ -80,6 +83,10 @@ public class Item {
         this.descricao = descricao;
     }
 
+    public int getIdProduto() {
+		return idProduto;
+	}
+    
 	public int getIdVendedor() {
 		return idVendedor;
 	}

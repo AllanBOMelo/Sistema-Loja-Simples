@@ -7,12 +7,14 @@ import com.loja.excessoes.AtualizarCadastroException;
 import com.loja.excessoes.CadastrarException;
 import com.loja.model.CompradorAnonimo;
 import com.loja.model.Item;
+import com.loja.model.Produto;
 import com.loja.model.VendedorAnonimo;
 
 public class Sistema {
 
 	private BancoDeDados banco;
 	private List<VendedorAnonimo> vendedores;
+	private List<Produto> produtos;
 	private List<Item> itens;
 	private List<CompradorAnonimo> compradores;
 	
@@ -20,6 +22,7 @@ public class Sistema {
 		try {
 			this.banco = new BancoDeDados();
 			this.vendedores  = this.banco.lerTabelaVendedores();
+			this.produtos    = this.banco.lerTabelaProdutos();
 			this.itens       = this.banco.lerTabelaItens();
 			this.compradores = this.banco.lerTabelaCompradores();
 		} catch (SQLException e) {
@@ -55,13 +58,31 @@ public class Sistema {
 		return vendedor.getId();
 	}
 	
-	public int cadastrarItem(Item item, VendedorAnonimo vendedor) throws CadastrarException {
+	// Eh privado pois soh eh possivel cadastrar produto junto com um item
+	private int cadastrarProduto(Produto produto) throws CadastrarException {
+		try {
+			
+			// Retorna com id atualizado
+			produto = banco.cadastrarProduto(produto); 
+			
+			this.produtos.add(produto);
+			
+		} catch (Exception e) {
+			throw new CadastrarException("Produto", e);
+		}
+		
+		return produto.getId();
+	}
+	
+	public int cadastrarItem(Item item, VendedorAnonimo vendedor, Produto produto) throws CadastrarException {
 		try {
 			
 			int idVendedor = cadastrarVendedor(vendedor);
+			
+			int idProduto = cadastrarProduto(produto);
 
 			// Cadastra id do vendedor no item
-			item = new Item(item.getId(), item.getDescricao(), item.getPreco(), item.getStatus(), item.getDescricao(), idVendedor);
+			item = new Item(item.getId(), item.getTitulo(), item.getDescricao(), item.getPreco(), item.getStatus(), idProduto, idVendedor);
 			
 			// Retorna com id atualizado
 			item = banco.cadastrarItem(item);
@@ -138,9 +159,14 @@ public class Sistema {
 		
 	}
 	
-	// Comprar item
+	// Fechar sistema
 	
-	public void comprarItem(int idItem, CompradorAnonimo comprador) {
+	public void fecharSistema() {
+		try {
+			this.banco.fecharConexao();
+		} catch (SQLException e) {
+			System.err.println("Um erro ocorreu ao tentar fechar o sistema: " + e.getMessage());
+		}
 	}
 	
 	// Getters
@@ -151,12 +177,19 @@ public class Sistema {
 	 * */
 	
 	public VendedorAnonimo[] getVendedores() {
-		VendedorAnonimo[] vendedoresArray = new VendedorAnonimo[vendedores.size()];
+		VendedorAnonimo[] vendedoresArray = new VendedorAnonimo[this.vendedores.size()];
 		vendedoresArray = vendedores.toArray(vendedoresArray);
 		
 		return vendedoresArray;
 	}
 
+	public Produto[] getProdutos() {
+		Produto[] produtosArray = new Produto[this.produtos.size()];
+		produtosArray = vendedores.toArray(produtosArray);
+		
+		return produtosArray;
+	}
+	
 	public Item[] getItens() {
 		Item[] itensArray = new Item[itens.size()];
 		itensArray = itens.toArray(itensArray);
@@ -165,10 +198,19 @@ public class Sistema {
 	}
 
 	public CompradorAnonimo[] getCompradores() {
-		CompradorAnonimo[] compradoresArray = new CompradorAnonimo[compradores.size()];
+		CompradorAnonimo[] compradoresArray = new CompradorAnonimo[this.compradores.size()];
 		compradoresArray = compradores.toArray(compradoresArray);
 		
 		return compradoresArray;
+	}
+	
+	public Produto retornaProduto(int idProduto) {
+		
+		for (Produto produto : this.produtos)
+			if (produto.getId() == idProduto)
+				return produto;
+		
+		return null;
 	}
 
 	public VendedorAnonimo retornaVendedor(int idVendedor) {

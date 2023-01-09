@@ -33,6 +33,7 @@ public class PaginaPrincipal {
 				new PaginaVender(menssagens, leitor, sistema).iniciaPaginaDeVenda();
 				break;
 			case 0:
+				this.sistema.fecharSistema();
 				return;
 			default:
 				System.err.println("\nOpcao invalida\n");

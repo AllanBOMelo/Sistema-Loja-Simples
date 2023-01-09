@@ -12,11 +12,13 @@ import java.util.List;
 import com.loja.model.CompradorAnonimo;
 import com.loja.model.Item;
 import com.loja.model.Item.Status;
+import com.loja.model.Produto;
 import com.loja.model.VendedorAnonimo;
 
 public class BancoDeDados {
 
 	private final String NOME_TABELA_VENDEDORES  = "Vendedores";
+	private final String NOME_TABELA_PRODUTOS  = "Produtos";
 	private final String NOME_TABELA_ITENS       = "Itens";
 	private final String NOME_TABELA_COMPRADORES = "Compradores";
 	
@@ -28,7 +30,6 @@ public class BancoDeDados {
 		this.connection = DriverManager.getConnection("jdbc:sqlite:sample.db");
         
 		criarTabelas();
-		
 		
 	}
 	
@@ -50,16 +51,26 @@ public class BancoDeDados {
         								+ " primary key(id asc)"        // Chave primaria
         								+ ")");
         
+        if (!nomesTabelas.contains(this.NOME_TABELA_PRODUTOS))
+        	statement.executeUpdate("create table " + this.NOME_TABELA_PRODUTOS + 
+        								" (id integer,"
+        								+ " linkAmostraDados string,"
+        								+ " linkDados string,"
+        								+ " primary key(id asc)"        // Chave primaria
+        								+ ")");
+        
         if (!nomesTabelas.contains(this.NOME_TABELA_ITENS))
         	statement.executeUpdate("create table " + this.NOME_TABELA_ITENS + 
         								" (id integer,"
         								+ " titulo string, "
+        								+ " descricao string,"
         								+ " preco real,"                                      // "real" eh o mesmo que double ou float no SQLite
         								+ " status string,"
-        								+ " descricao string,"
+        								+ " idProduto integer,"
         								+ " idVendedor integer,"
         								+ " primary key(id asc),"                            // Chave primaria
-        								+ " foreign key(idVendedor) references Vendedor(id)" // Chave estrangeira
+        								+ " foreign key(idProduto) references " + this.NOME_TABELA_PRODUTOS + "(id)," // Chave estrangeira
+        								+ " foreign key(idVendedor) references " + this.NOME_TABELA_VENDEDORES + "(id)" // Chave estrangeira
         								+ ")"); 
         
         if (!nomesTabelas.contains(this.NOME_TABELA_COMPRADORES))
@@ -115,12 +126,38 @@ public class BancoDeDados {
 
 	}
 
+	public Produto cadastrarProduto(Produto produto) throws SQLException {
+		
+		int id = -1;
+		
+        // Cria query retornando no fim o id para atualizar na variavel
+        String query = "insert into " + this.NOME_TABELA_PRODUTOS + "(linkAmostraDados, linkDados) values(?,?) returning id";
+        
+        // Executa
+		
+		PreparedStatement statement = this.connection.prepareStatement(query);
+        statement.setQueryTimeout(30); // Tempo limite de 30 segundos
+
+        statement.setString(1, produto.getLinkAmostraDados());
+        statement.setString(2, produto.getLinkDados());
+
+        // Pega id retornada
+        
+        ResultSet rs = statement.executeQuery();
+        
+        if (rs.next())
+        	id = rs.getInt("id");
+		
+		return new Produto(id, produto.getLinkAmostraDados(), produto.getLinkDados());
+
+	}
+	
 	public Item cadastrarItem(Item item) throws SQLException {
 
 		int id = -1;
 		
         // Cria query retornando no fim o id para atualizar na variavel
-        String query = "insert into " + this.NOME_TABELA_ITENS + " (titulo, preco, status, descricao, idVendedor) values(?,?,?,?,?) returning id";
+        String query = "insert into " + this.NOME_TABELA_ITENS + " (titulo, descricao, preco, status, idProduto, idVendedor) values(?,?,?,?,?,?) returning id";
         
         // Executa
 		
@@ -128,10 +165,11 @@ public class BancoDeDados {
         statement.setQueryTimeout(30); // Tempo limite de 30 segundos
 
         statement.setString(1, item.getTitulo());
-		statement.setDouble(2, item.getPreco());
-		statement.setString(3, item.getStatus().getNome().toUpperCase());
-		statement.setString(4, item.getDescricao());
-		statement.setInt   (5, item.getIdVendedor());
+        statement.setString(2, item.getDescricao());
+		statement.setDouble(3, item.getPreco());
+		statement.setString(4, item.getStatus().getNome().toUpperCase());
+		statement.setInt   (5, item.getIdProduto());
+		statement.setInt   (6, item.getIdVendedor());
 		
         // Pega id retornada
         
@@ -140,7 +178,7 @@ public class BancoDeDados {
         if (rs.next())
         	id = rs.getInt("id");
 
-		return new Item(id, item.getTitulo(), item.getPreco(), item.getStatus(), item.getDescricao(), item.getIdVendedor());
+		return new Item(id, item.getTitulo(), item.getDescricao(), item.getPreco(), item.getStatus(), item.getIdProduto(), item.getIdVendedor());
 	
 	}
 
@@ -200,9 +238,36 @@ public class BancoDeDados {
 		return vendedores;
 	}
 
+	public List<Produto> lerTabelaProdutos() throws SQLException {
+
+		int id;
+		String linkAmostraDados, linkDados;
+		
+		List<Produto> produtos = new ArrayList<>();
+
+		// Executa query
+		
+        Statement statement = connection.createStatement();
+        statement.setQueryTimeout(30); // Tempo limite de 30 segundos
+
+        ResultSet rs = statement.executeQuery("select * from " + this.NOME_TABELA_PRODUTOS);
+
+        // Le resutados
+        
+        while(rs.next()) {
+        	id               = rs.getInt   ("id");
+        	linkAmostraDados = rs.getString("linkAmostraDados");
+        	linkDados        = rs.getString("linkDados");
+        	
+        	produtos.add(new Produto(id, linkAmostraDados, linkDados));
+       }
+
+		return produtos;
+	}
+	
 	public List<Item> lerTabelaItens() throws SQLException {
 
-		int id, idVendedor;
+		int id, idProduto, idVendedor;
 		double preco;
 		String titulo, status, descricao;
 		
@@ -220,12 +285,13 @@ public class BancoDeDados {
         while(rs.next()) {
         	id         = rs.getInt   ("id");
         	titulo     = rs.getString("titulo");
+        	descricao  = rs.getString("descricao");
         	preco      = rs.getDouble("preco");
         	status     = rs.getString("status");
-        	descricao  = rs.getString("descricao");
+        	idProduto  = rs.getInt   ("idProduto");
         	idVendedor = rs.getInt   ("idVendedor");
         	
-        	itens.add(new Item(id, titulo, preco, Status.valueOf(status.toUpperCase()), descricao, idVendedor));
+        	itens.add(new Item(id, titulo, descricao, preco, Status.valueOf(status.toUpperCase()), idProduto, idVendedor));
        }
 
 		return itens;
@@ -277,17 +343,33 @@ public class BancoDeDados {
 		return true;
 	}
 	
+	public boolean atualizarProdutos(Produto produto) throws SQLException {
+        
+		String query = "update " + this.NOME_TABELA_PRODUTOS + " set linkAmostraDados = ?, linkDados = ?, where id = ?";
+		
+		PreparedStatement statement = this.connection.prepareStatement(query);
+		
+		statement.setString(1, produto.getLinkAmostraDados());
+		statement.setString(2, produto.getLinkDados());
+		statement.setInt   (3, produto.getId());
+		
+		statement.executeUpdate();
+		
+		return true;
+	}
+
 	public boolean atualizarItens(Item item) throws SQLException {
-		String query = "update " + this.NOME_TABELA_ITENS + " set titulo = ?, preco = ?, status = ?, descricao = ?, idVendedor = ? where id = ?"; 
+		String query = "update " + this.NOME_TABELA_ITENS + " set titulo = ?, descricao = ?, preco = ?, status = ?, idProduto = ?, idVendedor = ? where id = ?"; 
 
 		PreparedStatement statement = this.connection.prepareStatement(query);
 		
 		statement.setString(1, item.getTitulo());
-		statement.setDouble(2, item.getPreco());
-		statement.setString(3, item.getStatus().getNome().toUpperCase());
-		statement.setString(4, item.getDescricao());
-		statement.setInt   (5, item.getIdVendedor());
-		statement.setInt   (6, item.getId());
+		statement.setString(2, item.getDescricao());
+		statement.setDouble(3, item.getPreco());
+		statement.setString(4, item.getStatus().getNome().toUpperCase());
+		statement.setInt   (5, item.getIdProduto());
+		statement.setInt   (6, item.getIdVendedor());
+		statement.setInt   (7, item.getId());
 		
 		statement.executeUpdate();
 		
@@ -309,9 +391,6 @@ public class BancoDeDados {
 		return true;
 	}
 
-	// Apagar (Delete)
-	
-	
 	/* Uso APENAS em testes
 	 * 
 	 */ 
@@ -343,11 +422,13 @@ public class BancoDeDados {
 		
 		// Inserir nas tabelas
 		VendedorAnonimo vendedor = null;
+		Produto produto = null;
 		Item item = null;
 		CompradorAnonimo comprador = null;
 		try {
 			vendedor  = banco.cadastrarVendedor (new VendedorAnonimo (-1, "perseu", "bitcoin:", "email@mail.com"));
-			item      = banco.cadastrarItem     (new Item            (-1, "titulo", 50.0, "status", "descricao", vendedor.getId()));
+			produto   = banco.cadastrarProduto  (new Produto         (-1, "imagem.raio.com", "raio.com"));
+			item      = banco.cadastrarItem     (new Item            (-1, "titulo", "descricao", 50.0, Status.DISPONIVEL, produto.getId(), vendedor.getId()));
 			comprador = banco.cadastrarComprador(new CompradorAnonimo(-1, "jackson", "bitcoin:"));
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -356,6 +437,7 @@ public class BancoDeDados {
 		// Ler tabelas
 		try {
 			banco.lerTabelaVendedores() .forEach(v -> System.out.println(v.getPseudonimo()));
+			banco.lerTabelaProdutos()   .forEach(p -> System.out.println(p.getLinkAmostraDados()));
 			banco.lerTabelaItens()      .forEach(i -> System.out.println(i.getTitulo()));
 			banco.lerTabelaCompradores().forEach(c -> System.out.println(c.getPseudonimo()));
 		} catch (SQLException e) {
@@ -365,7 +447,8 @@ public class BancoDeDados {
 		// Atualizar linhas
 		try {
 			banco.cadastrarVendedor(new VendedorAnonimo(-1, "perseu3", "bitcoin:", "email@mail.com"));
-			banco.cadastrarItem(new Item(-1, "titulo2", 50.0, "status", "descricao", vendedor.getId()));
+			banco.cadastrarProduto(new Produto(-1, "images2.raio.com", "raio.com/download"));
+			banco.cadastrarItem(new Item(-1, "titulo2", "descricao2", 50.0, Status.VENDIDO, produto.getId(), vendedor.getId()));
 			banco.cadastrarComprador(new CompradorAnonimo(-1, "jackson5", "bitcoin:"));
 		} catch (SQLException e1) {
 			e1.printStackTrace();
@@ -374,6 +457,7 @@ public class BancoDeDados {
 		// Ler tabelas
 		try {
 			banco.lerTabelaVendedores() .forEach(v -> System.out.println(v.getPseudonimo()));
+			banco.lerTabelaProdutos()   .forEach(p -> System.out.println(p.getLinkAmostraDados()));
 			banco.lerTabelaItens()      .forEach(i -> System.out.println(i.getTitulo()));
 			banco.lerTabelaCompradores().forEach(c -> System.out.println(c.getPseudonimo()));
 		} catch (SQLException e) {
@@ -386,9 +470,9 @@ public class BancoDeDados {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}*/
-		
+		/*
 		// Fechar banco
-		/*try {
+		try {
 			banco.fecharConexao();
 		} catch (SQLException e) {
 			e.printStackTrace();
