@@ -34,7 +34,7 @@ public class Item {
 		    String descricao, 
 		    double preco, 
 		    Status status, 
-		    int idProduto,
+		    int    idProduto,
 		    int    idVendedor) {
         this.id             = id;
         this.titulo         = titulo;
